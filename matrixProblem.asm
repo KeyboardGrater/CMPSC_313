@@ -13,11 +13,17 @@ column1: .word 3                            # # define column1 3
 row2: .word 3                               # # define row2 3
 column2: .word 2                            # # define column2 2
 
-prod
+prodMatrix: .word 0, 0
+            .word 0, 0
+
+# constants
+DATA_SIZE = 4
 
 # strings
 notPossibleMessage: .asciiz "The number of rows in matrix 1 is not equal to the number of columns in matrix 2, thus matrix multiplication cannot be performed"
+spacingCharcter: .asciiz "   "
 newLine: .asciiz "\n"
+
 
 .text
 
@@ -58,6 +64,59 @@ move $t1, $zero
 # call function
 jal matrixMultiplication 
 
+# TESTING
+li $v0, 4
+la $a0, newLine
+syscall
+
+
+printProductMatrix:
+    li $t0, 0                               # i = 0;
+    la $a0, row1
+    lw $t2, 0($a0)
+    la $a0, column2
+    lw $t3, 0($a0)
+    la $a1, prodMatrix
+    outerLoop:
+        bge $t0, $t2, exitOuterLoop
+        li $t1, 0
+        innerLoop:
+            bge $t1, $t2, exitInnerLoop
+            # rowIndex * numCol + colIndex
+            mul $t7, $t0, $t3
+            add $t7, $t7, $t1
+
+            # previous * data_size
+            mul $t7, $t7, DATA_SIZE
+
+            #prodMatrix[i][j]_addr = baseAdd_A + above
+            add $t7, $a1, $t7
+
+            # load value at prodMatrix[i][j]
+            lw $t6, 0($t7)
+
+            # Print value at prodMatrix[i][j]
+            li $v0, 1
+            move $a0, $t6
+            syscall
+
+            # Print spacing between matrix values
+            li $v0, 4
+            la $a0, spacingCharcter
+            syscall
+
+            addi $t1, $t1, 1
+            j innerLoop
+        exitInnerLoop:
+
+        # print new line
+        li $v0, 4
+        la $a0, newLine
+        syscall
+
+        addi $t0, $t0, 1
+        j outerLoop
+    exitOuterLoop:
 
 
 j endProgram
@@ -72,24 +131,109 @@ j endProgram
 
 # --- No longer in main ---
 
-# a0 = matrix1 address, a1 = matrix2 address, a2 = column1, a3 = row2, t0 = row1, t1 = column2
+# a0 = matrix1 address, a1 = matrix2 address, a2 = column1, a3 = row2
+# t0 = i, t1 = j, t2 = k, t3 = row1, t4 = row2, t5 = column1, t6 = column2, t7 = temp
+# row2 is never used, replace t5's use with 
 matrixMultiplication:
     # load the arguments (really just load stack (row1), then duplicate for column2)
-    lw $t0, 0($sp)
+    lw $t3, 0($sp)                  # MIGHT WANT TO DO SOMETHING WITH STACK AFTER THIS
 
     # create a local column2 variable
-    move $t1, $t0
+    move $t6, $t3
+    # move column1 and row2 to temp variables
+    move $t4, $a2
+    #move $t5, $a3
+
+    # load the product Matrix
+    la $a2, prodMatrix
+
+    # Outermost loop
+    li $t0, 0                               # int i = 0;
+
+    outerMostLoop:
+        bge $t0, $t3, outerMostExit         # if (i >= row1) {break;}
+
+        li $t1, 0                           # int j = 0;
+        mediumLoop:
+            bge $t1, $t6, mediumLoopExit
+
+            li $t2, 0                       # int k = 0;
+
+            deepestLoop:
+                bge $t2, $t4, deepestLoopExit    # if (k >= column1) {break;}
+
+                # int temp = aMatrix[i][k] * bMatrix[k][j];
+                # Equation = addr = base_addr + (rowInd * numCol + colInd) + DATA_SIZE
+
+                # find matrixA's address at aMatrix[i][k]
+            
+                # rowIndex * numCol + colIndex
+                mul $t8, $t0, $t4
+                add $t8, $t8, $t2
+
+                # previous * data_size
+                mul $t8, $t8, DATA_SIZE
+
+                # aMatrix[i][k]_addr = baseAdd_A + above
+                add $a3, $a0, $t8
+
+                # load value at aMatrix[i][k]
+                lw $t7, 0($a3)
+
+                # find matrixB's address at bMatrix[k][j]
+
+                # rowIndex * numCol + colIndex
+                mul $t8, $t2, $t6
+                add $t8, $t8, $t1
+
+                # previous * DATA_SIZE
+                mul $t8, $t8, DATA_SIZE
+
+                # bMatrix[i][k]_addr = baseAdd_B + above
+                add $a3, $a1, $t8
+
+                # load value at bMatrix[i][k]
+                lw $t8, 0($a3)
+
+                # temp = aMatrix[i][k] * bMatrix[k][j];
+                mul $t7, $t7, $t8
 
 
 
+                # productMatrix[i][j] = productMatrix[i][j] + temp;
 
+                # productMatrix address
 
+                # rowIndex * numCol + colIndex
+                mul $t8, $t0, $t6
+                add $t8, $t8, $t1
 
+                # previous * DATA_SIZE
+                mul $t8, $t8, DATA_SIZE
 
+                # prodMatrix[i][j]_addr = base_add + previous
+                add $a3, $a2, $t8
 
+                # prodMatrix[i][j] = prodMatrix[i][j] + temp;
+                lw $t8, 0($a3)              # get/load value at prodMatrix[i][j]
+                add $t8, $t8, $t7           # prodMatrix[i][j] + temp
+                sw $t8, 0($a3)              # save prodMatrix[i][j] + temp to prodMatrix[i][j]
+                
 
-# Include some way of return
+                addi $t2, $t2, 1            # k = k + 1;
+            j deepestLoop
+            deepestLoopExit:
 
+            addi $t1, $t1, 1                # j = j + 1;
+        j mediumLoop
+        mediumLoopExit:
+
+        addi $t0, $t0, 1                    # i = i + 1;
+        j outerMostLoop
+    outerMostExit:
+
+# Include some way of return. Might not needed if everything was saved.
+j printProductMatrix
 
 # End program
 endProgram:
