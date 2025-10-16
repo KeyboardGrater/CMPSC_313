@@ -136,7 +136,7 @@ j endProgram
 # row2 is never used, replace t5's use with 
 matrixMultiplication:
     # load the arguments (really just load stack (row1), then duplicate for column2)
-    lw $t3, 0($sp)                  # MIGHT WANT TO DO SOMETHING WITH STACK AFTER THIS
+    lw $t3, 0($sp)                  
 
     # create a local column2 variable
     move $t6, $t3
