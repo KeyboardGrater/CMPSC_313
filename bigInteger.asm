@@ -7,6 +7,7 @@ inputBuffer: .space 41
 .align 2
 BigInt1: .space 41                          # 40 9's = fits into 2^133 in binary, convert to bytes. 2^17, (rounded up from 16.625), enough room in remainder (.625 < 1 - 1/8), so signed included already
 BigInt2: .space 41
+BigIntSum: .space 41 
 
 # CONSTANTS
 BIGINT_SIZE = 41
@@ -172,6 +173,26 @@ printTesting:
     j backToMainFromTesting
 
 # ----- TEST PRINTING ----- #
+
+# Fill Space with zeros
+fillSpace:
+    li $t0, 0
+    li $t1, BIGINT_SIZE
+    #addi $t1, $t1, -1
+    la $a0, BigIntSum
+
+    fillLoop:
+        beq $t0, $t1, fillLoopExit
+        li $t2, 0
+        sb $t2, 0($a0)
+        addi $t0, $t0, 1
+        
+        j fillLoop
+
+    fillLoopExit:
+    j fillSpaceReturn1
+
+
 
 # ADDING
 bigIntAddition:
