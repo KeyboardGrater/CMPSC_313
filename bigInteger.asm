@@ -73,6 +73,11 @@ main:
 
     # ----- FOR TESTING ----- #
 
+
+    # Adding
+
+
+
     j endProgram
 
 copyInput:
@@ -82,32 +87,30 @@ copyInput:
     move $t1, $a2                           # move BigInt (1 or 2)'s address to temporary register
     li $t2, 0                               # i = 0
     
+# ---------------------- ACCOUNT FOR FIRST DIGIT, IE if negative --------------------------------
     copyLoop:
         # Get charcter at i of buffer
-        add $t3, $t0, $t2                   # source_char = buffer_address + offset. No multiplication because char is 1 byte
-        lb $t4, 0($t3)                      # load source_char
+        add $t3, $t0, $t2                   # source_char = buffer_addr + i
+        lb $t4, 0($t3)                      # save source_char to temp reg                 
 
-        # Get to i of bigInt (1 or 2)
-        add $t3, $t1, $t2                   # save_location = bigInt_address + offset
-        sb  $t4, 0($t3)                     # save source_char to location in BigInt
-
-        # Check to end string (null-terminator), or if using up all the 40 numbers, a newline, since it ends up getting tacked in on the end
-
-        # Null-terminator checker
-        li $t5, 0x00                        # Null charcter in ascii
+        # Get the i of bigInt (1 or 2)
+        add $t3, $t1, $t2
+        
+        # Check if null or new line
+        li $t5, 0x00                        # null
+        beq $t5, $t4, copyLoopExit          
+        li $t5, 0x0A                        # new line
         beq $t5, $t4, copyLoopExit
 
-        # New line checker
-        li $t5, 0x0A                        # newline (Line feed) charcter in ascii
-        beq $t5, $t4, copyLoopExit
+        # Else
+        addi $t4, $t4, -48
 
-        # Else 
+        sb $t4, 0($t3)
+
         addi $t2, $t2, 1
-
         j copyLoop
 
     copyLoopExit:
-
     jr $ra
 
 
@@ -135,7 +138,7 @@ printTesting:
         li $t3, 0x0A
         beq $t2, $t3, printTestingLoopExit
 
-        li $v0, 11
+        li $v0, 1
         move $a0, $t2
         syscall
         
@@ -160,6 +163,26 @@ printTesting:
 
 # ----- TEST PRINTING ----- #
 
+# ADDING
+bigIntAddition:
+    # t0 = i, t1 = curr addr in one, t2 = curr addr in two 
+
+    la $a1, BigInt1                         # Load Address of the BigInts
+    la $a2, BigInt2
+
+    additionLoop:
+        # Get value at bigInt1[i]
+        add $t1, $a1, $t0                   # curr_addr_one = one_base_addr + i
+        lb $t3, 0($t1)                      # load 
+        
+        # Get value at bigInt2[i]
+        add $t2, $a2, $t0                   # curr_addr_two = two_base_addr + i
+
+
+
+
+
+        addi $t0, $t0, 1                    # i++
 
 endProgram:
 # End program
