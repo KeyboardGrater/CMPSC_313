@@ -96,9 +96,6 @@ void equals (struct IntegerSet * array_1_pointer, struct IntegerSet * array_2_po
     int i = 0;
     const unsigned int LAST_INDEX = INTEGERSET_ARRAY_SIZE - 1;
 
-    // unsigned int array_1_value;
-    // unsigned int array_2_value;
-
     // Loop over
     while (true) {
         // Conditional to exit loop
@@ -123,6 +120,40 @@ void equals (struct IntegerSet * array_1_pointer, struct IntegerSet * array_2_po
     return;
 }
 
+void union_of (struct IntegerSet * array_1_pointer, struct IntegerSet * array_2_pointer) {
+    int i = 0;
+    unsigned int LAST_INDEX_OF_ARRAY = INTEGERSET_ARRAY_SIZE - 1;
+    struct IntegerSet union_array;
+    unsigned int union_value;
+    
+    // Loop through them
+    while (true) {
+        // check if we have passed last index
+        if (i > LAST_INDEX_OF_ARRAY) {break;}
+        
+        // Get there values at i
+        unsigned int array_1_value = array_1_pointer -> a[i];
+        unsigned int array_2_value = array_2_pointer -> a[i];
+
+        // Add them togather
+        union_value = array_1_value + array_2_value;
+
+        // Case 0 = 0 + 0, Case 1 = 1 + 0 or 0 + 1, Case 2 = 1 + 1. Don't have to do any work in case 0 or 1, only 2
+        // Case 2: (1 + 1) = 2
+        if (union_value == 2) {union_value = union_value - 1;}
+        
+        // Save the union to the index i of union array
+        union_array.a[i] = union_value;
+
+        i = i + 1;                          // iterator 
+    }
+
+    // Call print function with this union array as the argument
+    print_set(&union_array);
+}
+
+
+
 int main () {
     struct IntegerSet array_1;
     struct IntegerSet array_2;
@@ -145,8 +176,9 @@ int main () {
         // Check for 7 (i.e. if user wants to exit loop)
         if (operation_choice == 7) {break;}
 
-        // If option 1
-        // TODO
+        if (operation_choice == 1) {
+            union_of(&array_1, &array_2);
+        }
 
         // If option 2
         // TODO
@@ -229,7 +261,8 @@ int main () {
         }
         // TODO
 
-        
+        // ELSE 
+        // TODO
         
         repeat_operation_choice:
     }
