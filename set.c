@@ -36,38 +36,47 @@ unsigned int which_array_to_modify () {
     return array_to_modify;
 }
 
-void insert_element (struct IntegerSet * set_pointer) {
-    const unsigned int ARRAY_SIZE = INTEGERSET_ARRAY_SIZE;
-    unsigned int user_number;
+// Get the user input of which number they would like to modify (insert or delete).
+unsigned int number_to_modify () {  
+    int user_number;
+    const unsigned int ARRAY_SIZE = INTEGERSET_ARRAY_SIZE; 
+    const unsigned int LAST_INDEX_OF_ARRAY = ARRAY_SIZE - 1;
     
-    // Find what number the user would like to remove
-    printf("What number (0 - 99) would you like to insert?\n");
-    scanf("%u", &user_number);
+    
+    /// ----------------- Might want to add something here just in case if the user wants to exit the program at this stage.
 
-    set_pointer -> a[user_number] = 1;
-
+    // Check to see if the number is within the bounds, if not keep getting input until it is.
+    while (true) {
+        // Get user input
+        printf("Please pick a number between 0 - 99\n");
+        scanf("%i", &user_number);
+    
+        // Check if not within the bounds
+        if (user_number < 0) {continue;}
+        else if (user_number > LAST_INDEX_OF_ARRAY) {continue;}
+        else {break;}                       // Exit loop if within the bounds
+    }
+    unsigned int user_number_unsigned = user_number;
+    return (user_number_unsigned);
 }
 
+void insert_element (struct IntegerSet * set_pointer) {
+    unsigned int index;
+
+    // Call user input function
+    index = number_to_modify();
+
+    // insert element into the array
+    set_pointer -> a[index] = 1;
+}
 void delete_element (struct IntegerSet * set_pointer) {
-    int i = 0;
-    const unsigned int ARRAY_SIZE = INTEGERSET_ARRAY_SIZE;
-    unsigned int user_number;
+    unsigned int index;
 
-    // Find out what element needs to be deleted.
-    printf("What number (0 - 99), would you like to delete.");
-    scanf("%u", &user_number);
-    
-    // Loop over to find the element, then replace it with zero, then exit loop.
-    while (true) {
-        // Do deletion 
-        set_pointer -> a[i] = 0;
+    // Call user input function
+    index = number_to_modify();
 
-        // Check if it can be exited, i.e. if we are at element and performed the deletion action.
-        if (i == user_number) {break;}
-
-        // Iterate
-        i = i + 1;
-    }
+    // Delete number from array at index
+    set_pointer -> a[index] = 0;
 }
 
 
@@ -101,11 +110,11 @@ int main () {
 
         // Insert
         if (operation_choice == 3) {
-            array_choice = which_array_to_modify();
             
             while (true) {
                 // Case 1, 2, and 3, will all make the operations menu appear again. 1 and 2 does a action beforehand, where 3 skips that action.
                 // The default case (when not 1, 2, nor 3) it repeates the array_choice. Still within insert element action choice.
+                array_choice = which_array_to_modify();
                 switch (array_choice) {
                     case 1:
                         insert_element(&array_1);
@@ -123,11 +132,11 @@ int main () {
 
         // Delete
         else if (operation_choice == 4) {
-            array_choice = which_array_to_modify();
-
+            
             while (true) {
                 // Case 1, 2, 3, will all make the operations menu appear again. 1 and 2 does a action beforehand, where 3 skips that action.
                 // The default case (when not 1, 2, nor 3) it repeates the array_choice. Still within insert element action choice.
+                array_choice = which_array_to_modify();
                 switch (array_choice) {
                     case 1:
                         delete_element(&array_1);
@@ -155,7 +164,7 @@ int main () {
         repeat_operation_choice:
     }
 
-    printf("Tester");
+
 
 
     return 0;
@@ -166,3 +175,6 @@ int main () {
 // For Insert, Delete: Input these number:
 // Ones that will work: 0,1, 50, 98, 99 => (min),(min + 1), (max/2), (max - 1), (max)
 // Ones that won't work: -1, -2, -99, 100, 101, 200
+
+// Bugs or Oddities:
+// -- It failed when I did inser >> array 2 >> 0111 -> Because it scanned it in as 73, weird issue.
