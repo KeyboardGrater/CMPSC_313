@@ -4,6 +4,9 @@ INTEGERSET_ARRAY_SIZE = 100                 # enum {INTEGERSET_ARRAY_SIZE = 100}
 
 # struct IntegerSet {int a[INTEGERSET_ARRAY_SIZE]; };   # int * 100 = 4 * 100 = 400 bytes
 
+# jump tables
+operation_switch: .word case_1 case_2 case_3 case_4 case_5 case_6 case_7
+
 # strings
 operation_prompt: .asciiz "Please pick a operation to perform.\n1: Union of two sets\n2: Intersection of two sets\n3: Insertion on a set\n4: Deletion on a set\n5: Print a set\n6: Check to see if two sets are equal\n7: Exit\n\n"
 which_array_prompt: .asciiz "Which array would you like to chose.\nFor array one enter 1, for array two, enter 2. And if you would like to go back, enter 3.\n"
@@ -50,7 +53,7 @@ main:
 
 
     # ----------------------------------- User Choice Section --------------------------
-    # t1 = operation_choice , t2 = array_choice
+    # t1 = operation_choice , t2 = array_choice, t3 = temp 
 
     user_choices_loop:
         # Get user input for what operation they want to do.
@@ -64,6 +67,24 @@ main:
         li $v0, 1
         syscall
         move $t1, $v0
+
+        # switch (operation_choice)
+        
+        # First check if the default condition was reached (bound checking)
+        blt $t0, $zero, user_choices_loop             # (operation_choice < 0) Get input again
+        
+        li $t3, 7
+        bgt $t1, $t3, user_choices_loop               # (operation_choice > 7)
+
+        # Jump table lookup
+
+        # Find location of choice
+        la $t3, operation_switch                      # base_addr of operation_switch table
+        mul $t1, $t1, 4                               # t1 = offset = t1 * sizeOf(int)
+        add $t3, $t3, $t1                             # t3 = base_addr + offset = operation_switch_base_addr + (operation_choice * sizeof(int))
+        
+        lw $t3, 0($t3)                                # Load the value at the address of t3 into t3, which is the address of the case
+        jr $t3                                        # jump registers to the value of t3, which is the address of the case
 
         
 
