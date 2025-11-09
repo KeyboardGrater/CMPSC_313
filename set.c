@@ -30,7 +30,20 @@ unsigned int which_array_to_choose () {
     printf("Which array would you like to chose.\nFor array one enter 1, for array two, enter 2. And if you would like to go back, enter 3.\n"); 
 
     // Get user input for which array they would like to modify.
-    scanf("%u", &array_to_modify);
+    while (true) {
+        scanf("%u", &array_to_modify);
+
+        if (array_to_modify == 1) {
+            break;
+        }
+        else if (array_to_modify == 2) {
+            break;
+        }
+        else if (array_to_modify == 3) {
+            break;
+        }
+        // Else (re-loop)
+    }
 
     // Return the user input
     return array_to_modify;
