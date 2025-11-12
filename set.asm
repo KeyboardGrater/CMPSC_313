@@ -8,6 +8,7 @@ INTEGERSET_ARRAY_SIZE = 100                 # enum {INTEGERSET_ARRAY_SIZE = 100}
 operation_switch: .word case_1, case_2, case_3, case_4, case_5, case_6, case_7
 print_switch: .word ps_1, ps_2, ps_3
 insert_switch: .word in_1, in_2, in_3 
+delete_switch: .word rm_1, rm_2, rm_3
 
 # strings
 operation_prompt: .asciiz "Please pick a operation to perform.\n1: Union of two sets\n2: Intersection of two sets\n3: Insertion on a set\n4: Deletion on a set\n5: Print a set\n6: Check to see if two sets are equal\n7: Exit\n\n"
@@ -142,10 +143,45 @@ main:
                 j user_choices_loop
             in_3:
                 j user_choices_loop
+
         # Delete
         case_4:
-            # TODO 
-            j user_choices_loop
+            # Case 1, 2, 3, will all make the operations menu appear again. 1 and 2 does a action beforehand, where 3 skips that action.
+            # The default case (when not 1, 2, nor 3) repeats the array_choice. Still within delete element action choice.
+
+            # array_choice = which_array_to_choose();
+            jal which_array_to_choose
+            move $t2, $v0                             # Save the return value of which_array_to_choose to temp register 2
+
+            # switch (array_choice) 
+            
+            # account for zero-indexing
+            addi $t2, $t2, -1
+            
+            # Get the address
+            la $t3, delete_switch
+            mul $t4, $t2, 4                           # offset = choice * sizof(int)
+            add $t3, $t3, $t4                         # curr_add = base_addr + offset
+
+            # Goto case
+            lw $t3, 0($t3)
+            jr $t3
+
+            rm_1:
+                # delete_element(&array_1);
+                move $a0, $s1
+                move $a1, $s3
+                jal delete_element
+                j user_choices_loop
+            rm_2:
+                # delete_element(&array_2);
+                move $a0, $s2
+                move $a1, $s3
+                jal delete_element
+                j user_choices_loop
+            rm_3:
+                j user_choices_loop
+
         # Print
         case_5:
             # Case 1, 2, 3, will all make the operations menu appear again. 1 and 2 does a action beforehand, while 3 does no actions.
@@ -366,6 +402,44 @@ insert_element:
     li $t1, 1
 
     sw $t1, 0($t0)
+
+    jr $ra
+
+delete_element:
+    # void delete_element (struct IntegerSet * set_pointer, const unsigned int INTEGER_LAST_INDEX)
+    # t0 = index, t1 = temp, t2 = set_pointer (arrayX_addr)
+    # a0 = arrayX_addr, a1 = LAST_INDEX
+
+    # Save to stack
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    addi $sp, $sp, -4
+    sw $a0, 0($sp)
+
+    # call user input function
+
+    # index = number_to_modify();
+    move $a0, $a1
+    jal number_to_modify
+    move $t0, $v0
+
+    # Get stuff back from stack
+    lw $t2, 0($sp)
+    addi $sp, $sp, 4
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    # set_pointer -> a[index] = 0;
+
+    # Delete number from array at index
+    mul $t0, $t0, 4                                   # offset = index * sizeof(int)
+    add $t0, $t2, $t0                                 # curr_addr = base_addr + offset
+
+    li $t1, 0
+    
+    sw $t1, 0($t0)                                    # set value at addr t0 to 1
 
     jr $ra
 
