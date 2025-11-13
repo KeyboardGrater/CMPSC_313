@@ -17,6 +17,7 @@ number_to_modify_prompt: .asciiz "Please pick a number between 0 - 99\n"
 false_message: .asciiz "False\n"
 true_message: .asciiz "True\n"
 
+
 testMessage: .asciiz "Test Message"
 
 .text
@@ -229,7 +230,11 @@ main:
                     j user_choices_loop               
         # Equals
         case_6:
-            # TODO
+            # equals(&array_1, &array_2, LAST_INDEX);
+            move $a0, $s1                             # loads array 1 address into argument 1
+            move $a1, $s2                             # loads array 2 address into argument 2
+            move $a2, $s3                             # loads LAST_INDEX constant into the third argument
+            jal equals
             j user_choices_loop
         # Exit
         case_7:
@@ -578,10 +583,63 @@ intersection_of:
 
     jr $ra
 
+equals:
+    # void equals (struct IntegerSet * array_1_pointer, struct IntegerSet * array_2_pointer, LAST_INDEX)
+    li $t0, 0   
+    move $t1, $a0                                     # array_1_addr
+    move $t2, $a1                                     # array_2_addr
+    move $t3, $a2                                     # LAST_INDEX
+
+    # struct IntegerSet * equals_array;
+    li $v0, 9
+    addi $a0, $t3, 1                                  # ARRAY_SIZE = LAST_INDEX + 1 
+    mul $a0, $a0, 4                                   # a0 = ARRAY * sizeof(int)
+    syscall
+    move $s4, $v0
+
+    equals_loop:
+        # Check if we have passed the last index
+        # if (i > LAST_INDEX_OF_ARRAY) {break;}
+        bgt $t0, $t3, equal_loop_exit
+
+        # Get the values at i
+
+        # Calculate the offset, it should be the same for both of the arrays
+        mul $t4, $t0, 4                               # t4 = i * sizeof(int)
+
+        # unsigned int array_1_value = array_1_pointer -> a[i];
+        add $t6, $t1, $t4                             # curr_addr_1 = array_1_addr + offset
+        lw $t5, 0($t6)
+
+        # unsigned int array_2_value = array_2_pointer -> a[i];
+        add $t8, $t2, $t4                             # curr_addr_2 = array_2_addr + offset
+        lw $t7, 0($t8)
+
+        bne $t7, $t5, not_equal
+
+        # increment
+        addi $t0, $t0, 1
+
+        j equals_loop
+    equal_loop_exit:
+
+    # Gets down here if true, otherewise it exited the loop earlier 
+    # Prints true
+    li $v0, 4
+    la $a0, true_message
+    syscall
+
+    jr $ra
+    # -----------------------
+    not_equal:
+        
+    li $v0, 4
+    la $a0, false_message
+    syscall
+
+    jr $ra
 
 # End Program
-# endProgram:
 endProgram:
     li $v0, 10
-    syscall
- 
+    syscall 
