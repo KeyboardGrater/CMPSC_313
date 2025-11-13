@@ -24,11 +24,12 @@ void constructor (struct IntegerSet * set_pointer) {
 unsigned int which_array_to_choose () {
     unsigned int array_to_modify;
 
-    // Ask the user which array would they like to modify.
-    printf("Which array would you like to chose.\nFor array one enter 1, for array two, enter 2. And if you would like to go back, enter 3.\n"); 
-
+    
     // Get user input for which array they would like to modify.
     while (true) {
+        // Ask the user which array would they like to modify.
+        printf("Which array would you like to chose.\nFor array one enter 1, for array two, enter 2. And if you would like to go back, enter 3.\n"); 
+        
         scanf("%u", &array_to_modify);
 
         if (array_to_modify == 1) {
@@ -234,11 +235,8 @@ int main () {
                             goto repeat_operation_choice;
                         case 3:
                             goto repeat_operation_choice;
-                        default:
-                            break;
                     }
                 }
-                break;
 
             // Delete
             case 4:
@@ -257,11 +255,8 @@ int main () {
                             goto repeat_operation_choice;
                         case 3:
                             goto repeat_operation_choice;
-                        default:
-                            break;
                     }
                 }
-                break;
 
             // (5) Print Set
             case 5:
@@ -282,7 +277,6 @@ int main () {
                             goto repeat_operation_choice;
                     }
                 }
-                break;
         
             case 6:
                 equals(&array_1, &array_2);
