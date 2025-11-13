@@ -108,7 +108,11 @@ main:
             j user_choices_loop
         # Intersection
         case_2:
-            # TODO
+            # intersection_of(&array_1, &array_2);
+            move $a0, $s1                             # load array_1 into the first argument
+            move $a1, $s2                             # load array_2 into the second argument
+            move $a2, $s3                             # load LAST_INDEX into the third argument
+            jal intersection_of
             j user_choices_loop
         # Insert
         case_3:
@@ -511,8 +515,73 @@ union_of:
 
     jr $ra
 
+intersection_of:
+    # void intersection_of (struct IntegerSet * array_1_pointer, sturct IntegerSet * array_2_pointer, LAST_INDEX)
+    # t0 = 0, t1 = array_1_addr, t2 = array_2_addr, t3 = LAST_INDEX, t4 = offset, t5 = array_1_value, t6 = curr_addr_1, t7 = array_2_value, t8 = curr_addr_2, t9 = temp
+
+    li $t0, 0   
+    move $t1, $a0                                     # array_1_addr
+    move $t2, $a1                                     # array_2_addr
+    move $t3, $a2                                     # LAST_INDEX
+
+    # struct IntegerSet * intersection_array;
+    li $v0, 9
+    addi $a0, $t3, 1                                  # ARRAY_SIZE = LAST_INDEX + 1 
+    mul $a0, $a0, 4                                   # a0 = ARRAY * sizeof(int)
+    syscall
+    move $s4, $v0
+
+    intersection_of_loop:
+        # Check if we have passed the last index
+        # if (i > LAST_INDEX_OF_ARRAY) {break;}
+        bgt $t0, $t3, intersection_of_loop_exit
+
+        # Get the values at i
+
+        # Calculate the offset, it should be the same for both of the arrays
+        mul $t4, $t0, 4                               # t4 = i * sizeof(int)
+
+        # unsigned int array_1_value = array_1_pointer -> a[i];
+        add $t6, $t1, $t4                             # curr_addr_1 = array_1_addr + offset
+        lw $t5, 0($t6)
+
+        # unsigned int array_2_value = array_2_pointer -> a[i];
+        add $t8, $t2, $t4                             # curr_addr_2 = array_2_addr + offset
+        lw $t7, 0($t8)
+
+        # intersection_array.a[i] = array_1_value && array_2_value;
+        and $t9, $t5, $t7                              # t9 = t5 and t7
+
+        # Get address of intersection
+        add $t6, $s4, $t4                             # intersection_curr_addr = intersection_base_addr + offset
+        sw $t9, 0($t6)
+
+        # increment
+        addi $t0, $t0, 1
+
+        j intersection_of_loop
+    intersection_of_loop_exit:
+
+    # Save return register to stack
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    # Call print function with this intersection array as the argument
+    # print_set(&intersection_array, LAST_INDEX);
+    move $a0, $s4
+    move $a1, $t3
+    jal print_set
+    
+    # Get return address back from the stack
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    jr $ra
+
+
 # End Program
 # endProgram:
 endProgram:
     li $v0, 10
-    syscall  
+    syscall
+ 
