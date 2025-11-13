@@ -1,2 +1,0 @@
-This code is repository is for my code for Computer Science 313, which is a class that teaches about MIPS assembly langauge, which is what all the assembly code here, is written in. And the C code that is present in this is for planning out and converting down into the assembly code.
-All of the assembly code that was done in the homework folder is tested in, and geared towards qtSpim, so some of the code might not work in other simulator likes MARS.
