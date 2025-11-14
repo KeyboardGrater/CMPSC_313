@@ -1,11 +1,15 @@
 .data
 
+
 # Structures
 # typedef struct {
 #     unsigned int account_number;          # 4 bytes
 #     double annual_interest_rate;          # 8 bytes
 #     double savings_balance;               # 8 bytes
 # } SavingsAccount;                         # 4 + 8 + 8 = 20 bytes
+
+# Array
+decimal_array: .space 8                     # int * 2 = 8
 
 # Test Data   
 account_1_annual_interest_rate: .double 0.03
@@ -147,6 +151,7 @@ calculate_monthly_interest:
     # get balance
     l.d $f2, 12($t0)
 
+
     # calculate annual_interest = annual_interest_rate * balance
     mul.d $f0, $f0, $f2
 
@@ -196,9 +201,21 @@ print_balance:
     la $a0, new_balance_message
     syscall
 
-    li $v0, 3
+    # Save return address to stack
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    # Call limit_decimal_numbers
     mov.d $f12, $f0
-    syscall
+    jal limit_decimal_numbers
+
+    # pop return address from stack
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    #li $v0, 3
+    #mov.d $f12, $f0
+    #syscall
 
     li $v0, 11
     la $a0, 0x0A
@@ -206,8 +223,92 @@ print_balance:
 
     jr $ra
 
+limit_decimal_numbers:
+    # argument: f12
+
+    # t0 = temp
+    # f0 = number, f2 = double(100)
+
+    # move into temporary register (floating-point)
+    mov.d $f0, $f12
+
+    # multiply the number by 100 (100'ths place is the max decimal value being kept)
+    li $t0, 100                             # Convert int 100 to double 100                   
+    mtc1.d $t0, $f2
+    cvt.d.w $f2, $f2
+
+    mul.d $f0, $f0, $f2
+
+    # Convert the double into an integer and move it
+    cvt.w.d $f0, $f0
+    mfc1 $t0, $f0
+
+    # Divide by 100, hi (modular) = decimal value, low = integer value
+    div $t0, $t0, 100
+
+    mflo $t0
+
+    li $v0, 11
+    la $a0, 0x24                            # Hex: 0x24 = '$'
+    syscall
+
+    li $v0, 1                               # print out everything to the left of the decimal    
+    move $a0, $t0
+    syscall
+
+    li $v0, 11
+    la $a0, 0x2E                            # Hex: 0x2E = '.'
+    syscall 
+
+    mfhi $t0
+
+    # call converstion of integer to string function
+    addi $sp, $sp, -4
+    sw $ra 0($sp)
+
+    move $a0, $t0
+    jal int_to_string_print
+
+    # restore return address
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    jr $ra
+
+int_to_string_print:
+    # arguments $a0
+    # t0 = i, t1 = int_to_string, t2 = decimal_place_limit, t3 = num_to_print, t4 = divider
+
+    # move arguments into temp reg
+    move $t1, $a0
+    
+    # Initializations
+    li $t0, 0                               # int i = 0
+    li $t2, 2                               # decimal place limit
+    li $t4, 10
+
+    int_to_string_loop:
+        # When to exit the loop
+        beq $t0, $t2, int_to_string_loop_exit
+
+        # print charcter at i
+        div $t1, $t1, $t4
+        mflo $t3                            # move the dividend to t3 (one being printed)
+        mfhi $t1                            # move the remainder into t1
+
+        li $v0, 1
+        move $a0, $t3
+        syscall
+        
+        # increment i
+        addi $t0, $t0, 1
+        j int_to_string_loop
+    int_to_string_loop_exit:
+
+    jr $ra
+
 set_interest_rate:
-    # a0 = arguments: account_addr, f0 = annual_interest_rate
+    # a0 = arguments: account_addr, f12 = annual_interest_rate
 
     # t0 = account_addr
     # f0 = annual_interest_rate
@@ -217,7 +318,7 @@ set_interest_rate:
     mov.d $f0, $f12
 
     # update annaul interest rate
-    s.d $f0, 0($t0)
+    s.d $f0, 4($t0)
 
     jr $ra
     
