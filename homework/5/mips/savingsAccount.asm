@@ -15,9 +15,8 @@ account_2_balance: .double 3000.00
 
 account_interest_update: .double 0.04
 
-
-
 # Strings
+new_balance_message: .asciiz "New Balance: "
 
 .text
 .globl main
@@ -72,9 +71,14 @@ main:
     # s0 = account_1_addr, s1 = account_2_addr
     
     # Calculate the monthly interest
+
+    # account 1
     move $a0, $s0
     jal calculate_monthly_interest
 
+    # account 2
+    move $a0, $s1
+    jal calculate_monthly_interest
 
     j end_program
 
@@ -133,9 +137,48 @@ calculate_monthly_interest:
     # Save to structure
     s.d $f2, 12($t0) 
     
+    # Save return address to stack
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
     # Call print_balance
     move $a0, $t0                           # load account_X_addr in to argument
     jal print_balance
+
+    # Pop stack for return address
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    jr $ra
+
+print_balance:
+    # void print_balance (SavingsAccount * account)
+    # double balance;
+
+    # t0 = account_X_addr
+    # f0 = balance
+
+    # move account_addr to temp register
+    move $t0, $a0
+
+    # load the balance from struct into local balance
+    l.d $f0, 12($t0)                         # balance offset = 12 (base + int + double = 0 + 4 + 8 = 12)
+
+    # print the information
+    li $v0, 4
+    la $a0, new_balance_message
+    syscall
+
+    li $v0, 3
+    mov.d $f12, $f0
+    syscall
+
+    li $v0, 11
+    la $a0, 0x0A
+    syscall
+
+    jr $ra
+
 
 # End program
 end_program:
