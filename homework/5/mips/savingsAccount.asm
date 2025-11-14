@@ -69,6 +69,7 @@ main:
     
 # ------------------------------- Intalization End -------------------------------
     # s0 = account_1_addr, s1 = account_2_addr
+    # f0 = new annual interest rate
     
     # Calculate the monthly interest
 
@@ -77,6 +78,32 @@ main:
     jal calculate_monthly_interest
 
     # account 2
+    move $a0, $s1
+    jal calculate_monthly_interest
+
+    # change annual interest rate
+    l.d $f0, account_interest_update
+
+    # save f0 to stack
+    addi $sp, $sp, -4
+    s.d $f0, 0($sp)
+
+    move $a0, $s0
+    mov.d $f12, $f0 
+    jal set_interest_rate
+
+    # pop stack for f0
+    l.d $f0, 0($sp)
+    addi $sp, $sp, 4
+
+    move $a0, $s1
+    mov.d $f12, $f0
+    jal set_interest_rate
+
+    # Print the new balances
+    move $a0, $s0
+    jal calculate_monthly_interest
+
     move $a0, $s1
     jal calculate_monthly_interest
 
@@ -179,6 +206,21 @@ print_balance:
 
     jr $ra
 
+set_interest_rate:
+    # a0 = arguments: account_addr, f0 = annual_interest_rate
+
+    # t0 = account_addr
+    # f0 = annual_interest_rate
+
+    # move arguments into temporary registers
+    move $t0, $a0
+    mov.d $f0, $f12
+
+    # update annaul interest rate
+    s.d $f0, 0($t0)
+
+    jr $ra
+    
 
 # End program
 end_program:
