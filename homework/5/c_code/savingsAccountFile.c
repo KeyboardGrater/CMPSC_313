@@ -190,7 +190,7 @@ void read_transaction_file (FILE * file_pointer, SavingsAccount ** account, int 
                     }
                     modification = strtod(sub_buffer, &double_pointer);
                     update_balance(current_account, modification);
-                    
+                    break;
                 }
             
         }
