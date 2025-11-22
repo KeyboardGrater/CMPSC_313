@@ -52,7 +52,7 @@ SavingsAccount ** read_balance_file (FILE * file_pointer, int * num_accounts, un
         // Check if the current charcter is a newline, if so increment num_accounts
         current_charcter = read_buffer[i];
         if (current_charcter == 0x0A) {
-            (*num_accounts)++;
+            count = count + 1;
         }
 
         // Iterator incrementaction 
@@ -64,13 +64,14 @@ SavingsAccount ** read_balance_file (FILE * file_pointer, int * num_accounts, un
     if (current_charcter != 0x0A) { 
         read_buffer[bytes_read] = 0x0A;                         // Assuming READ_FILE_AMMOUNT > bytes_read
         bytes_read = bytes_read + 1;
-        (*num_accounts)++;
+        count = count + 1;
     }
 
     // Allocate the necessary amount of memory
-    SavingsAccount ** account = malloc((*num_accounts) * sizeof(SavingsAccount *));
+    SavingsAccount ** account = malloc(count * sizeof(SavingsAccount *));
 
-    i = 0;                                                      
+    i = 0;      
+    count = 0;                                                
     // Loop over the buffer and parse the data
     while (true) {
         // Exit Condition
@@ -109,6 +110,10 @@ SavingsAccount ** read_balance_file (FILE * file_pointer, int * num_accounts, un
         // Iterator update
         i = i + 1;
     }
+
+    // Updates the number of accounts
+    *num_accounts = count;
+
     return account;
 }
 
@@ -148,6 +153,20 @@ void set_interest_rate (SavingsAccount * account, double annual_interest_rate) {
 }
 
 
+void print_testing_info_helper(SavingsAccount * account) {
+    printf("%u %lf %lf\n", account->account_number, account->annual_interest_rate, account->savings_balance);
+}
+void print_testing_info (SavingsAccount ** account, int * num_accounts) {
+    int i = 0;
+    while (true) {
+        if (i >= (*num_accounts)) {break;}
+
+        print_testing_info_helper(account[i]);
+
+        i = i + 1;
+    }
+}
+
 int main () {
     FILE * file_pointer;
     char balance_file_path [] = "../mips/balance.txt";
@@ -171,6 +190,11 @@ int main () {
         perror("Error closing balance file");
         return 1;
     }
+    
+    
+    printf("Created %d accounts\n", num_accounts);
+
+    //print_testing_info(account, &num_accounts);
     
     
     return 0;
