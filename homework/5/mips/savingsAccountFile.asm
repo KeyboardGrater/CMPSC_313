@@ -10,6 +10,7 @@
 
 # Constrants
 READ_FILE_AMMOUNT = 256
+ANNUAL_INTEREST_RATE = 0.03
 
 
 # Array
@@ -87,7 +88,22 @@ main:
     la $a0, 0x0A
     syscall
 
+    # --------------- 2. Setting the interest rate --------------- #
+    li $t0, 0
+    set_interest_rate_loop:
+        bge $t0, $s2, set_interest_rate_loop_exit
 
+        # Get pointer at account[i]
+        mul $t1, $t0, 4
+        add $t1, $s2, $t1
+        lw $t1, 0($t1)
+
+        # Call set_interest_rate function
+        move $a0, $t1
+        jal set_interest_rate
+
+        addi $t0, $t0, 1
+        j set_interest_rate_loop
 
     j end_program
 
