@@ -337,7 +337,21 @@ print_file:
 .ktext 0x80000180
     
     # Save the registers
-    move $t0, $a0
-    move $t1, $v0
+    move $k0, $a0
+    move $k1, $v0
 
+    # Print generic error messgae
+    li $v0, 4
+    la $a0, error_message
+    syscall
+
+    # load address of end_program label
+    la $k0, end_program
+    
+    mtc0 $k0, $14
+
+    eret
+
+.kdata
+    error_message: .asciiz "An error has occured.\nNow ending the program.\n"
 

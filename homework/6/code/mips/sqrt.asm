@@ -135,18 +135,10 @@ end_program:
 
 # Exceptions
 .ktext 0x80000180
-    
-    # preserve $a0 and $v0
-    move $k0, $a0
-    move $k1, $v0
 
     li $v0, 4
     la $a0, negative_number_error
     syscall
-
-    # restore the registers
-    move $a0, $k0
-    move $a0, $k0
 
     # Load the end_program destination
     la $t0, end_program
@@ -155,4 +147,4 @@ end_program:
     eret
 
 .kdata
-    negative_number_error: .asciiz "Negative Number Detected\n"
+    negative_number_error: .asciiz "Negative Number Detected. Ending the program\n"
